@@ -1,2 +1,6 @@
-# chrono-memoria
-Reverse Chronometer PWA
+[![License](https://img.shields.io/github/license/24-blog/rc)](LICENSE)
+
+
+⚠️COPYRIGHT<br>
+Textual commentary written by the repository owner is
+licensed under CC BY-NC-ND 4.0.
