@@ -1,4 +1,4 @@
-[![License](https://img.shields.io/github/license/24-blog/rc)](LICENSE)
+[![License](https://img.shields.io/github/license/24-blog/chrono-memoria)](LICENSE)
 
 
 ## 時を遡る時計 (PWA)
