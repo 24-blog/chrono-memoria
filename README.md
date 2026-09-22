@@ -7,9 +7,9 @@ GitHub Pagesにそのまま置ける構成です。リポジトリ直下(また�
 
 | File name | 
 |---|
-| `index.html` — 本体 | 
-| `manifest.json` — PWA設定(アプリ名・アイコン・starturl) | 
-| `service-worker.js` — オフラインキャッシュ(index.html / アイコンをキャッシュ) | 
+| `index.html` | 
+| `manifest.json` | 
+| `service-worker.js` | 
 | `icon-192.png` |
 | `icon-512.png` | 
 | `icon-512-maskable.png` |
