@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>過去に進む時計</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14171d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="逆行時計">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,72,400;0,72,500;1,72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    box-sizing: border-box;
+    --ink: #f4ecd8;
+    --ink-dim: #b9ac8e;
+    --bg: #14171d;
+    --bg-panel: #1b1f27;
+    --brass: #c99a4b;
+    --brass-dim: #8a6a35;
+    --verdigris: #5c8b81;
+    --line: #33394450;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --ink: #241f16;
+      --ink-dim: #6b5f47;
+      --bg: #ece4d1;
+      --bg-panel: #f6f0e2;
+      --brass: #9a6b25;
+      --brass-dim: #b98f45;
+      --verdigris: #3f6e64;
+      --line: #b8ab8a70;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #f4ecd8; --ink-dim: #b9ac8e; --bg: #14171d; --bg-panel: #1b1f27;
+    --brass: #c99a4b; --brass-dim: #8a6a35; --verdigris: #5c8b81; --line: #33394450;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  * { box-sizing: inherit; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Newsreader', Georgia, 'Times New Roman', serif;
+    display: flex;
+    justify-content: center;
+    padding: 28px 16px 40px;
+  }
+  .page { width: 100%; max-width: 460px; }
+
+  .eyebrow {
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--verdigris);
+    margin-bottom: 6px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 500;
+    margin: 0 0 24px;
+    font-style: italic;
+  }
+
+  /* --- Anchor --- */
+  .anchor {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 12px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--bg-panel);
+  }
+  .anchor-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+  .anchor-status .set { color: var(--verdigris); }
+  button.fixbtn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: var(--brass);
+    color: var(--bg);
+    border: 1px solid var(--brass);
+    border-radius: 3px;
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+  button.fixbtn:disabled {
+    background: transparent;
+    color: var(--ink-dim);
+    border-color: var(--line);
+    cursor: default;
+  }
+
+  /* --- Clock --- */
+  .clock-wrap { display: flex; justify-content: center; margin-bottom: 18px; }
+  svg.face { width: min(78vw, 300px); height: min(78vw, 300px); overflow: visible; }
+  .rim { fill: none; stroke: var(--brass-dim); stroke-width: 2; }
+  .rim-inner { fill: var(--bg-panel); stroke: var(--brass); stroke-width: 1; }
+  .tick-major { stroke: var(--brass); stroke-width: 2.5; }
+  .tick-minor { stroke: var(--ink-dim); stroke-width: 1; opacity: 0.5; }
+  .hand-hour { stroke: var(--ink); stroke-width: 5; stroke-linecap: round; }
+  .hand-min { stroke: var(--ink); stroke-width: 3.5; stroke-linecap: round; }
+  .hand-sec { stroke: var(--verdigris); stroke-width: 1.6; stroke-linecap: round; }
+  .pivot { fill: var(--brass); }
+
+  .digital {
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.03em;
+  }
+  .digital .time { font-size: 34px; color: var(--ink); }
+  .digital .date { font-size: 13px; color: var(--ink-dim); margin-top: 2px; }
+
+  /* --- Controls --- */
+  .controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 22px 0 26px;
+  }
+  button {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: transparent;
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 7px 11px;
+    cursor: pointer;
+  }
+  button:focus-visible { outline: 2px solid var(--verdigris); outline-offset: 2px; }
+  button.active { color: var(--bg); background: var(--brass); border-color: var(--brass); }
+  button.tool { color: var(--verdigris); border-color: var(--verdigris)60; }
+
+  hr.div { border: none; border-top: 1px solid var(--line); margin: 0 0 22px; }
+
+  /* --- Calendar --- */
+  .cal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .cal-head .month { font-size: 19px; font-style: italic; }
+  .cal-head .countback {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--verdigris);
+  }
+  table.cal { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  table.cal th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--ink-dim);
+    padding: 6px 0 8px;
+  }
+  table.cal td {
+    text-align: center;
+    padding: 6px 0;
+    font-size: 14px;
+    color: var(--ink-dim);
+    position: relative;
+  }
+  table.cal td.today {
+    color: var(--bg);
+  }
+  table.cal td.today::before {
+    content: "";
+    position: absolute;
+    inset: 2px 14%;
+    background: var(--brass);
+    border-radius: 50%;
+    z-index: -1;
+  }
+  table.cal td.today {
+    font-weight: 500;
+  }
+  table.cal td.blank { visibility: hidden; }
+
+  footer {
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-dim);
+    opacity: 0.6;
+    margin-top: 28px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="eyebrow">reverse chronometer</div>
+  <h1>過去に進む時計<br>Chrono-Memoria</h1>
+
+  <div class="anchor" id="anchorBar">
+    <div class="anchor-status" id="anchorStatus">起点(E)は未固定 — 現在時刻をそのまま表示中</div>
+    <button id="fixBtn" class="fixbtn">「今」を起点として固定する</button>
+  </div>
+
+  <div class="clock-wrap">
+    <svg class="face" viewBox="0 0 200 200" id="face">
+      <circle class="rim" cx="100" cy="100" r="96"></circle>
+      <circle class="rim-inner" cx="100" cy="100" r="90"></circle>
+      <g id="ticks"></g>
+      <line id="handHour" class="hand-hour" x1="100" y1="100" x2="100" y2="58"></line>
+      <line id="handMin" class="hand-min" x1="100" y1="100" x2="100" y2="38"></line>
+      <line id="handSec" class="hand-sec" x1="100" y1="112" x2="100" y2="28"></line>
+      <circle class="pivot" cx="100" cy="100" r="3.5"></circle>
+    </svg>
+  </div>
+
+  <div class="digital">
+    <div class="time" id="digTime">--:--:--</div>
+    <div class="date" id="digDate">----年--月--日</div>
+  </div>
+
+  <div class="controls">
+    <button data-speed="1" class="speedBtn">リアルタイム</button>
+    <button data-speed="60" class="speedBtn">1分/秒</button>
+    <button data-speed="3600" class="speedBtn">1時間/秒</button>
+    <button data-speed="86400" class="speedBtn">1日/秒</button>
+  </div>
+  <div class="controls">
+    <button id="pauseBtn" class="tool">一時停止</button>
+  </div>
+
+  <hr class="div">
+
+  <div class="cal-head">
+    <div class="month" id="calMonth">----年 --月</div>
+    <div class="countback" id="calBack">−0日</div>
+  </div>
+  <table class="cal">
+    <thead>
+      <tr><th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th></tr>
+    </thead>
+    <tbody id="calBody"></tbody>
+  </table>
+
+  <footer>時は巻き戻り、日は遡る</footer>
+</div>
+
+<script>
+(function(){
+  var STORAGE_KEY = 'reverse-clock-anchor-E';
+  var anchorE = null; // ms timestamp; null until the user explicitly fixes "now"
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) anchorE = parseInt(saved, 10);
+  } catch (e) { /* storage unavailable — anchor simply starts unfixed */ }
+
+  var speed = 1; // scales how fast virtual time mirrors away from E
+  var paused = false;
+  var lastFrame = performance.now();
+  var virtual = new Date();
+  var renderedMonthKey = null;
+
+  var anchorStatus = document.getElementById('anchorStatus');
+  var fixBtn = document.getElementById('fixBtn');
+
+  function fmtAnchor(ms){
+    var d = new Date(ms);
+    return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  }
+
+  function refreshAnchorUI(){
+    if (anchorE === null) {
+      anchorStatus.innerHTML = '起点(E)は未固定 — 現在時刻をそのまま表示中';
+      fixBtn.textContent = '「今」を起点として固定する';
+      fixBtn.disabled = false;
+    } else {
+      anchorStatus.innerHTML = '起点(E) <span class="set">固定済み: ' + fmtAnchor(anchorE) + '</span>';
+      fixBtn.textContent = '起点を「今」に再固定する';
+      fixBtn.disabled = false;
+    }
+  }
+
+  fixBtn.addEventListener('click', function(){
+    anchorE = Date.now(); // the only permitted value: the moment of this action
+    try { localStorage.setItem(STORAGE_KEY, String(anchorE)); } catch (e) {}
+    refreshAnchorUI();
+  });
+
+  refreshAnchorUI();
+
+  // virtual(t): before E is fixed, mirrors nothing — just shows real time.
+  // once fixed, virtual(t) = E - speed * (real(t) - E), i.e. E is the pivot
+  // real time is reflected around, scaled by the chosen speed.
+  function computeVirtual(){
+    if (anchorE === null) return new Date();
+    var realNow = Date.now();
+    var mirrored = anchorE - speed * (realNow - anchorE);
+    return new Date(mirrored);
+  }
+
+  // build tick marks
+  var ticksG = document.getElementById('ticks');
+  for (var i = 0; i < 60; i++) {
+    var angle = i * 6;
+    var major = i % 5 === 0;
+    var r1 = major ? 78 : 84;
+    var r2 = 90;
+    var rad = (angle - 90) * Math.PI / 180;
+    var x1 = 100 + r1 * Math.cos(rad), y1 = 100 + r1 * Math.sin(rad);
+    var x2 = 100 + r2 * Math.cos(rad), y2 = 100 + r2 * Math.sin(rad);
+    var line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('class', major ? 'tick-major' : 'tick-minor');
+    ticksG.appendChild(line);
+  }
+
+  var handHour = document.getElementById('handHour');
+  var handMin = document.getElementById('handMin');
+  var handSec = document.getElementById('handSec');
+  var digTime = document.getElementById('digTime');
+  var digDate = document.getElementById('digDate');
+  var calMonth = document.getElementById('calMonth');
+  var calBack = document.getElementById('calBack');
+  var calBody = document.getElementById('calBody');
+
+  var weekdayJP = ['日','月','火','水','木','金','土'];
+
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+  function updateClockFace(d){
+    var h = d.getHours() % 12;
+    var m = d.getMinutes();
+    var s = d.getSeconds();
+    var ms = d.getMilliseconds();
+    var secDeg = (s + ms/1000) * 6;
+    var minDeg = (m + s/60) * 6;
+    var hourDeg = (h + m/60) * 30;
+    handSec.setAttribute('transform', 'rotate(' + secDeg + ' 100 100)');
+    handMin.setAttribute('transform', 'rotate(' + minDeg + ' 100 100)');
+    handHour.setAttribute('transform', 'rotate(' + hourDeg + ' 100 100)');
+  }
+
+  function updateDigital(d){
+    digTime.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    digDate.textContent = d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日(' + weekdayJP[d.getDay()] + ')';
+  }
+
+  function renderCalendar(d){
+    var y = d.getFullYear(), m = d.getMonth();
+    var key = y + '-' + m;
+    calMonth.textContent = y + '年 ' + (m+1) + '月';
+    if (anchorE === null) {
+      calBack.textContent = '起点未固定';
+    } else {
+      var anchorD = new Date(anchorE);
+      var anchorMidnight = new Date(anchorD.getFullYear(), anchorD.getMonth(), anchorD.getDate());
+      var curMidnight = new Date(y, m, d.getDate());
+      var days = Math.round((anchorMidnight - curMidnight) / 86400000);
+      calBack.textContent = (days === 0 ? '±0日(起点)' : (days > 0 ? '−' + days + '日' : '+' + (-days) + '日'));
+    }
+
+    if (key === renderedMonthKey) return;
+    renderedMonthKey = key;
+    calBody.innerHTML = '';
+    var first = new Date(y, m, 1);
+    var firstDow = first.getDay();
+    var lastDate = new Date(y, m+1, 0).getDate();
+    var cells = [];
+    for (var i = 0; i < firstDow; i++) cells.push(null);
+    for (var day = 1; day <= lastDate; day++) cells.push(day);
+    while (cells.length % 7 !== 0) cells.push(null);
+    for (var r = 0; r < cells.length; r += 7) {
+      var tr = document.createElement('tr');
+      for (var c = 0; c < 7; c++) {
+        var td = document.createElement('td');
+        var val = cells[r+c];
+        if (val === null) { td.className = 'blank'; td.textContent = '0'; }
+        else { td.textContent = val; }
+        tr.appendChild(td);
+      }
+      calBody.appendChild(tr);
+    }
+  }
+
+  function markToday(d){
+    var cells = calBody.querySelectorAll('td');
+    cells.forEach(function(td){ td.classList.remove('today'); });
+    var target = d.getDate();
+    calBody.querySelectorAll('td:not(.blank)').forEach(function(td){
+      if (parseInt(td.textContent, 10) === target) td.classList.add('today');
+    });
+  }
+
+  var lastDateStamp = null;
+  function fullRender(){
+    updateClockFace(virtual);
+    updateDigital(virtual);
+    renderCalendar(virtual);
+    var stamp = virtual.getFullYear()+'-'+virtual.getMonth()+'-'+virtual.getDate();
+    if (stamp !== lastDateStamp) { lastDateStamp = stamp; markToday(virtual); }
+    else { markToday(virtual); }
+  }
+
+  var frozenVirtual = null; // snapshot used while paused
+  function tick(){
+    if (!paused) {
+      virtual = computeVirtual();
+    } else if (frozenVirtual) {
+      virtual = frozenVirtual;
+    }
+    fullRender();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  document.querySelectorAll('.speedBtn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      speed = parseFloat(btn.getAttribute('data-speed'));
+      document.querySelectorAll('.speedBtn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+  });
+  document.querySelector('.speedBtn[data-speed="1"]').classList.add('active');
+
+  document.getElementById('pauseBtn').addEventListener('click', function(){
+    paused = !paused;
+    if (paused) frozenVirtual = virtual;
+    this.textContent = paused ? '再開' : '一時停止';
+  });
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('service-worker.js').catch(function(){ /* offline registration is best-effort */ });
+  });
+}
+</script>
+</body>
+</html>
+

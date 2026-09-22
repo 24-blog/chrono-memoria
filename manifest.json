@@ -1,0 +1,17 @@
+{
+  "name": "過去に進む時計",
+  "short_name": "逆行時計",
+  "description": "起点(いま)を固定し、そこから鏡映された時間を進む逆行時計とカレンダー",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14171d",
+  "theme_color": "#14171d",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
